@@ -1,6 +1,9 @@
 const Joi = require("joi");
+const mongoose = require("mongoose");
 
-const Responses = require("../constants/response");
+const RESPONSES = require("../constants/response");
+const MESSAGES = require("../constants/constantMessage");
+const STATUS = require("../constants/statusCodes");
 
 async function validateLogin(req, res, next) {
     try {
@@ -14,10 +17,10 @@ async function validateLogin(req, res, next) {
                 next();
             }).catch((error) => {
                 let message = error.details[0].message.replace(/"/g, "");
-                return Responses.error(req, res, 404, message)
+                return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message)
             });
     } catch (error) {
-        return Responses.error(req, res, 500, `${error}`);
+        return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);
     }
 };
 
@@ -32,16 +35,22 @@ async function validateOTPLogin(req, res, next) {
                 next();
             }).catch((error) => {
                 let message = error.details[0].message.replace(/"/g, "");
-                return Responses.error(req, res, 404, message)
+                return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message)
             });
     } catch (error) {
-        return Responses.error(req, res, 500, `${error}`);
+        return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);
     }
 };
 
 async function validateVerifyOTP(req, res, next) {
     try {
         const schema = Joi.object({
+            userId: Joi.string().custom((value, helpers) => {
+                if (!mongoose.Types.ObjectId.isValid(value)) {
+                    return helpers.error("any.invalid");
+                }
+                return value;
+            }, "ObjectId validation").required(),
             otp: Joi.string().length(4).pattern(/^[0-9]{4}$/).required(),
         });
 
@@ -53,7 +62,7 @@ async function validateVerifyOTP(req, res, next) {
             ? error.details[0].message.replace(/"/g, "")
             : error.message;
 
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message);
     }
 };
 

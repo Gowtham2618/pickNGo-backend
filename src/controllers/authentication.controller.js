@@ -10,111 +10,47 @@ const STATUS = require("../constants/statusCodes");
 const authenticateService = require("../services/authentication.service");
 const userService = require("../services/user.service");
 
-const { generateAccessToken, generateRefreshToken } = require("../middlewares/auth/generateRefreshToken");
 const { hashUserPassword } = require("../middlewares/auth/hashedPassword");
 const { mailTransporter } = require("../utils/mailSettings");
 const { compareUserPassword } = require("../middlewares/auth/comparePassword");
 const { generateResetToken, hashToken } = require("../utils/resetToken");
-const { genericCodeGeneration } = require("../utils/generateRandomCode");
-
-const ENV = process.env;
 
 
 class Authenticate {
 
     userLogin = async (req, res) => {
         try {
-            const { userDetails,accessToken, refreshToken} = req?.body ?? {};
-            userDetails = {
-                ...userDetails,
+            const { userDetails, accessToken, refreshToken, sessionObj } = req?.body ?? {};
+
+            const updateObject = {
                 sessionKey: accessToken,
-                refreshKey: refreshToken
+                refreshKey: refreshToken,
             };
-
-            let isExists = await authenticateService.isSessionExists(userDetails?._id);
-
-            if (!isExists) {
-                let sessionObj = {
-                    userId: new mongoose.Types.ObjectId(userDetails?._id),
-                    sessionKey: userToken,
-                    refreshKey: refreshToken,
-                    loginDetails: [{
-                        loginAt: new Date()
-                    }]
-                }
-                let isCreated = await authenticateService.createUserSession(sessionObj);
-
-                if (!isCreated) {
-                    return RESPONSES.error(req, res, 409, "Failed to create user session !");
-                }
-            }
-            else {
-                const updateObject = {
-                    sessionKey: userToken,
-                    refreshKey: refreshToken,
-                };
-                let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject, "email");
-                if (!isUpdated) {
-                    return RESPONSES.error(req, res, 409, "Failed to update user session !");
-                }
+            let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject);
+            if (!isUpdated) {
+                RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
 
-            return userDetails;
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionObj);
         }
         catch (error) {
-            return RESPONSES.error(req, res, 500, `${error}`);
+            RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);
         }
     };
 
     userOTPLogin = async (req, res) => {
         try {
-            let { phoneNumber } = req?.body;
-            let { type } = req?.params;
-            let matchCondition = {
-                isActive: true,
-                phoneNumber: String(phoneNumber)
+            const LOGIN_TYPE = "sms";
+            let { userDetails, sessionObj, otp } = req?.body;
+            const updateObject = {
+                code: otp
             };
-
-            let userDetails = await userService.userDetails(matchCondition);
-            if (!userDetails) {
-                return RESPONSES.error(req, res, 404, "User not exists, SignUp and try again !", { phoneNumber: phoneNumber });
-            };
-
-            let [isExists, isGeneratedOTP] = await Promise.all([
-                authenticateService.isSessionExists(userDetails?._id),
-                genericCodeGeneration("otp"),
-            ]);
-
-            if (!isGeneratedOTP) {
-                return RESPONSES.error(req, res, 409, "Failed to generate OTP !");
-            };
-
-            if (!isExists) {
-                let sessionObj = {
-                    userId: new mongoose.Types.ObjectId(userDetails?._id),
-                    phoneNumber: phoneNumber,
-                    loginDetails: [{
-                        loginAt: new Date()
-                    }],
-                    otp: [{
-                        code: isGeneratedOTP,
-                        expiresAt: moment().add(5, 'minutes').toDate()
-                    }]
-                };
-                let isCreated = await authenticateService.createUserSession(sessionObj);
-
-                if (!isCreated) {
-                    return RESPONSES.error(req, res, 409, "Failed to create user session !");
-                }
-            }
-            else {
-                const updateObject = {
-                    code: isGeneratedOTP
-                };
-                const isSessionUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject, type);
+            let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject, LOGIN_TYPE);
+            if (!isUpdated) {
+                RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
 
-            return RESPONSES.success(req, res, 200, "OTP generated Successfully !", { OTP: isGeneratedOTP });
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionObj);
 
         }
         catch (error) {
@@ -122,35 +58,23 @@ class Authenticate {
         }
     };
 
-    verifyOTP = async (req, res) => {
+    updateSessionOnOTPVerification = async (req, res) => {
         try {
-            const { userId, otp } = req?.body;
-            const sessionData = await authenticateService.isSessionExists(userId);
-            if (!sessionData) {
-                return RESPONSES.error(req, res, 404, "User session not exists !", {});
-            }
-
-            const { code } = sessionData?.otp?.at(-1);
-
-            if (Number(code) !== Number(otp)) {
-                return RESPONSES.error(req, res, 500, "Invalid OTP !", { OTP: otp });
+            const { userId, accessToken, refreshToken, sessionData } = req?.body;
+            const updateObject = {
+                sessionKey: accessToken,
+                refreshKey: refreshToken,
             };
 
-            const matchCondition = {
-                isActive: true,
-                _id: new mongoose.Types.ObjectId(userId),
+            let isUpdated = await authenticateService.updateUserSession(userId, updateObject);
+            if (!isUpdated) {
+                RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
 
-            let userDetails = await userService.userDetails(matchCondition);
-            if (!userDetails) {
-                return RESPONSES.error(req, res, 404, "User not exists !", {});
-            }
-
-            const isSessionUpdated = await this.generateTokenForUser(req, res, userDetails);
-            return RESPONSES.success(req, res, 200, "User logged in success !", isSessionUpdated);
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionData);
         }
         catch (error) {
-            return RESPONSES.error(req, res, 500, `${error}`);
+            return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);
         }
     };
 
@@ -219,58 +143,6 @@ class Authenticate {
             return RESPONSES.error(req, res, 500, `${error}`);
         }
     };
-
-    // generateTokenForUser = async (req, res, userDetails) => {
-    //     try {
-    //         let [userToken, refreshToken] = await Promise.all([
-    //             generateAccessToken(userDetails),
-    //             generateRefreshToken(userDetails)
-    //         ]);
-
-    //         if (!userToken) {
-    //             return RESPONSES.error(req, res, 409, "Failed to generate access token !");
-    //         }
-
-    //         userDetails = {
-    //             ...userDetails,
-    //             sessionKey: userToken,
-    //             refreshKey: refreshToken
-    //         };
-
-    //         let isExists = await authenticateService.isSessionExists(userDetails?._id);
-
-    //         if (!isExists) {
-    //             let sessionObj = {
-    //                 userId: new mongoose.Types.ObjectId(userDetails?._id),
-    //                 sessionKey: userToken,
-    //                 refreshKey: refreshToken,
-    //                 loginDetails: [{
-    //                     loginAt: new Date()
-    //                 }]
-    //             }
-    //             let isCreated = await authenticateService.createUserSession(sessionObj);
-
-    //             if (!isCreated) {
-    //                 return RESPONSES.error(req, res, 409, "Failed to create user session !");
-    //             }
-    //         }
-    //         else {
-    //             const updateObject = {
-    //                 sessionKey: userToken,
-    //                 refreshKey: refreshToken,
-    //             };
-    //             let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject, "email");
-    //             if (!isUpdated) {
-    //                 return RESPONSES.error(req, res, 409, "Failed to update user session !");
-    //             }
-    //         }
-
-    //         return userDetails;
-    //     }
-    //     catch (error) {
-    //         return RESPONSES.error(req, res, 500, `${error}`);
-    //     }
-    // };
 
     sendResetEmail = async (email, resetToken) => {
         try {

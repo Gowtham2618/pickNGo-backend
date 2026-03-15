@@ -6,108 +6,77 @@ const userSchema = new Schema(
         firstName: {
             type: String,
             required: true,
-            trim: true,
+            trim: true
         },
+
         lastName: {
             type: String,
             required: true,
-            trim: true,
+            trim: true
         },
+
         email: {
             type: String,
             required: true,
             unique: true,
             lowercase: true,
-            trim: true,
+            trim: true
         },
-        dateOfBirth: {
-            type: Date,
-            required: true,
-        },
-        gender: {
-            type: String,
-            required: true,
-            enum: ["male", "female", "others"]
-        },
-        password: {
-            type: String,
-            required: true,
-        },
-        role: {
-            type: String,
-            required: true,
-            default: "customer",
-            enum: ["customer", "retailer"],
-        },
-        step1: { // General Information
-            type: String,
-            default: "completed",
-        },
-        step2: { // Address & store details
-            type: String,
-            default: "notcompleted",
-            enum: ["pending", "notcompleted", "completed"]
-        },
-        step3: { // Location
-            type: String,
-            default: "notcompleted",
-            enum: ["pending", "notcompleted", "completed"]
-        },
-        address: {
-            doorNo: { 
-                type: Number 
-            },
-            buildingName: {
-                type: String,
-                trim: true 
-            },
-            street: { 
-                type: String, 
-                trim: true 
-            },
-            city: { 
-                type: String, 
-                trim: true 
-            },
-            pincode: { 
-                type: Number 
-            },
-            state: { 
-                type: String, 
-                trim: true 
-            },
-            country: { 
-                type: String, 
-                trim: true 
-            },
-        },
+
         phoneNumber: {
             type: String,
             required: true,
             unique: true
         },
-        location: {
-            type: {
-                type: String,
-                enum: ["Point"],
-                default: "Point",
-            },
-            coordinates: {
-                type: [Number], // [longitude, latitude]
-                default: [0, 0],
-            },
+
+        password: {
+            type: String,
+            required: true
         },
+
+        dateOfBirth: {
+            type: Date
+        },
+
+        gender: {
+            type: String,
+            enum: ["male", "female", "others"]
+        },
+
+        role: {
+            type: String,
+            enum: ["customer", "retailer"],
+            default: "customer"
+        },
+
+        onboarding: {
+            step1: { // personal details
+                type: String,
+                default: "completed"
+            },
+            step2: { // address details
+                type: String,
+                enum: ["pending", "notcompleted", "completed"],
+                default: "notcompleted"
+            },
+            step3: { // location details
+                type: String,
+                enum: ["pending", "notcompleted", "completed"],
+                default: "notcompleted"
+            }
+        },
+
         isActive: {
             type: Boolean,
-            default: true,
+            default: true
         }
+
     },
     {
-        timestamps: true, // Adds createdAt & updatedAt
+        timestamps: true
     }
 );
 
-// ✅ Index for geolocation queries
-userSchema.index({ location: "2dsphere" });
-
+// NOTE: `unique: true` on the schema fields already creates indexes.
+//       Avoid creating duplicate indexes by not re-declaring them here.
 module.exports = mongoose.model("User", userSchema);

@@ -1,6 +1,8 @@
 const Joi = require("joi");
 
-const Responses = require("../constant/response");
+const RESPONSES = require("../constants/response");
+const MESSAGES = require("../constants/constantMessage");
+const STATUS = require("../constants/statusCodes");
 
 async function validateUserStep1(req, res, next) {
     try {
@@ -20,7 +22,7 @@ async function validateUserStep1(req, res, next) {
         const message = error.details
             ? error.details[0].message.replace(/"/g, "")
             : error.message;
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message);
     }
 };
 
@@ -56,7 +58,7 @@ async function validateUserOnboardingStep(req, res, next) {
 
         // Check valid step
         if (!schemas[step]) {
-            return Responses.error(req, res, 400, "Invalid onboarding step");
+            return RESPONSES.error(req, res, 400, "Invalid onboarding step");
         }
 
         // Validate step
@@ -69,7 +71,7 @@ async function validateUserOnboardingStep(req, res, next) {
             ? error.details[0]?.message.replace(/"/g, "")
             : error.message;
 
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, 400, message);
     }
 };
 
@@ -105,7 +107,7 @@ async function validateUserUpdateForm(req, res, next) {
         const message = error.details
             ? error.details[0].message.replace(/"/g, "")
             : error.message;
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, 400, message);
     }
 };
 
@@ -129,7 +131,7 @@ async function validateUserlists(req, res, next) {
         const message = error.details
             ? error.details[0].message.replace(/"/g, "")
             : error.message;
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, 400, message);
     }
 };
 

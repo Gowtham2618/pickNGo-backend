@@ -12,27 +12,27 @@ const {
 
 const { checkStoreExists } = require("../middlewares/index")
 
-const storeRouter = require("../controllers/store.controller");
+const storeCtrl = require("../controllers/store.controller");
 
 //Store Routes:
 
 app.post("/onboard",
     [validateStoreOnboard],
     checkStoreExists,
-    storeRouter.onboardStore
+    storeCtrl.onboardStore
 );
 
 app.get("/details/:storeId",
-    storeRouter.getStoreDetails
+    storeCtrl.getStoreDetails
 );
 
 app.get("/lists",
     [validateStoreLists],
-    storeRouter.getStoreLists
+    storeCtrl.getStoreLists
 );
 
 app.put("/:storeId",
-    storeRouter.updateStore
+    storeCtrl.updateStore
 );
 
 module.exports = app;
