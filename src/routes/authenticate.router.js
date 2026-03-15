@@ -1,45 +1,59 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const router = require("express").Router();
 
 const {
     validateLogin,
     validateOTPLogin,
-    validateVerifyOTP,
+    validateVerifyOTP
 } = require("../validators/authenticate.validators");
 
-const { generateAccessToken,generateRefreshToken,userDetails } = require("../middlewares/index");
-const authenticate = require("../controllers/authentication.controller");
-
-//Authenticate Routes:
-
-app.post("/login",
-    [validateLogin],
-    userDetails,
+const {
+    checkUserSessionExists,
+    compareUserPassword,
     generateAccessToken,
     generateRefreshToken,
-    authenticate.userLogin
+    createUserSession,
+    userDetails,
+    generateRandomOTP,
+    verifyOTP,
+} = require("../middlewares");
+
+const authenticateCtrl = require("../controllers/authentication.controller");
+
+router.post("/login",
+    validateLogin,
+    userDetails,
+    compareUserPassword,
+    generateAccessToken,
+    generateRefreshToken,
+    createUserSession,
+    authenticateCtrl.userLogin
 );
 
-app.post("/login/:type",
-    [validateOTPLogin],
-    authenticate.userOTPLogin
+router.post("/login/:type",
+    validateOTPLogin,
+    userDetails,
+    generateRandomOTP,
+    createUserSession,
+    authenticateCtrl.userOTPLogin
 );
 
-app.post("/verify-otp",
-    [validateVerifyOTP],
-    authenticate.verifyOTP
+router.post("/verify-otp",
+    validateVerifyOTP,
+    userDetails,
+    checkUserSessionExists,
+    verifyOTP,
+    generateAccessToken,
+    generateRefreshToken,
+    createUserSession,
+    authenticateCtrl.updateSessionOnOTPVerification
 );
 
-app.put("/reset/password",
-    authenticate.userPasswordReset
+router.put("/reset-password",
+    authenticateCtrl.userPasswordReset
 );
 
-app.put("/forget/password",
-    authenticate.forgetPassword
+router.put("/forget-password",
+    authenticateCtrl.forgetPassword
 );
 
-module.exports = app;
+module.exports = router;

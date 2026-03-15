@@ -4,7 +4,7 @@ const STATUS = require("../constants/statusCodes");
 
 const userService = require("../services/user.service");
 const storeService = require("../services/store.service");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 class StoreController {
     onboardStore = async (req, res) => {

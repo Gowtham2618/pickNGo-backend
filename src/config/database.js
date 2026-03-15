@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 try {
-    const dbString = `mongodb+srv://${process.env.DBUSER}:${process.env.DBPASSWORD}@cluster0.0cjyg.mongodb.net/UzhavarMart`;
+    const dbString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.0cjyg.mongodb.net/UzhavarMart`;
     console.log("🚀 ~ MongoDB Connection String:", dbString);
 
     mongoose.set("debug", true);

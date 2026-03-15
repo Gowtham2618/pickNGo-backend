@@ -5,11 +5,8 @@ const userModel = require("../models/user.model");
 
 class AuthenticateService {
     
-    isSessionExists = async (userId) => {
-        return await userSessionModal.findOne({
-            userId: new mongoose.Types.ObjectId(userId),
-            isActive: true
-        }).lean();
+    isSessionExists = async (matchCondition) => {
+        return await userSessionModal.findOne({ ...matchCondition }).lean();
     };
 
     createUserAuthenticate = async (payload) => {
@@ -29,7 +26,7 @@ class AuthenticateService {
             },
         };
     
-        if (type === "email") {
+        if (type !== "sms") {
             updateObject = {
                 $set: {
                     sessionKey: payload?.sessionKey,

@@ -1,10 +1,21 @@
 module.exports = {
+    OTP_GENERATION_FAILED: "Failed to generate OTP",
     INVALID_CREDENTIALS: "Invalid Credentials",
+    PASSWORD_GENERATION_FAILED: "Failed to generate password",
+    PASSWORD_HASHING_FAILED: "Failed to hash password",
     ACCESS_TOKEN_FAILED: "Failed to generate access token",
     REFRESH_TOKEN_FAILED: "Failed to generate refresh token",
-
+    USER_LOGGED_IN: "User logged in successfully",
+    USER_LOGGED_OUT: "User logged out successfully",
+    USER_LOGIN_FAILED: "Failed to login user",
+    USER_SESSION_CREATED: "User session created successfully",
+    USER_SESSION_CREATION_FAILED: "Failed to create user session",
+    USER_SESSION_UPDATE_FAILED: "Failed to update user session",
+    USER_SESSION_NOT_EXISTS: "User session does not exist",
+    USER_CREATED: "User created successfully",
+    USER_EXISTS: "User already exists!",
+    USER_CREATION_FAILED: "Failed to create user!",
     USER_NOT_FOUND: "User not found",
-
     STORE_EXISTS: "Store already exists for this number!",
     STORE_CREATED: "Store created successfully",
     STORE_FETCHED: "Store data fetched successfully",
@@ -14,5 +25,7 @@ module.exports = {
     STORE_DELETED: "Store deleted successfully",
     STORE_DELETE_FAILED: "Store deletion failed",
     STORE_CREATION_FAILED: "Failed to create store!",
-    INVALID_STORE_ID: "Invalid store ID"
+    INVALID_STORE_ID: "Invalid store ID",
+    INVALID_OTP: "Invalid OTP",
+    OTP_EXPIRED: "OTP has expired",
 };

@@ -1,16 +1,26 @@
 const bcrypt = require('bcryptjs');
-
-const Responses = require("../../constants/response");
-
 const saltRounds = 10;
 
-function hashUserPassword(password) {
-    let hashedPassword = bcrypt.hashSync(password, saltRounds);
-    if (!hashedPassword) {
-        return Responses.error(req, res, Status.HTTP_CONFLICT, "Failed to bcrypt password !");
+const RESPONSES = require("../../constants/response");
+const MESSAGES = require("../../constants/constantMessage");
+const STATUS = require("../../constants/statusCodes");
+
+const hashUserPassword = async (req, res, next) => {
+    try {
+        const { password } = req?.body;
+        console.log("🚀 ~ hashUserPassword ~ password:", password)
+        const hashedPassword = bcrypt.hashSync(password, saltRounds);
+        console.log("🚀 ~ hashUserPassword ~ hashedPassword:", hashedPassword)
+        if (!hashedPassword) {
+            return RESPONSES.error(req, res, STATUS?.CONFLICT, MESSAGES?.PASSWORD_HASHING_FAILED ?? "");
+        }
+
+        req.body["password"] = hashedPassword;
+        next();
     }
+    catch (error) {
+        return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);
+    }
+};
 
-    return hashedPassword;
-}
-
-module.exports = { hashUserPassword };
+module.exports = { hashUserPassword }
