@@ -10,6 +10,9 @@ const { compareUserPassword } = require("./auth/comparePassword");
 const { checkUserSessionExists } = require("./auth/checkUserSessionExists");
 const {generateRandomOTP} = require("./auth/generateRandomOTP");
 const { verifyOTP } = require("./auth/verifyOTP");
+const { checkUserAddressExists } = require("./user/checkUserAddressExists");
+const {getNearbyStores} = require("./store/getNearbyStores");
+const { checkIsValidOrder } = require("./order/checkIsValidOrder");
 
 module.exports = {
     checkUserSessionExists: checkUserSessionExists,
@@ -23,4 +26,7 @@ module.exports = {
     userDetails: userDetails,
     checkStoreExists: checkStoreExists,
     verifyOTP: verifyOTP,
+    checkUserAddressExists: checkUserAddressExists,
+    getNearbyStores: getNearbyStores,
+    checkIsValidOrder: checkIsValidOrder
 };

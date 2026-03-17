@@ -10,7 +10,6 @@ const hashUserPassword = async (req, res, next) => {
         const { password } = req?.body;
         console.log("🚀 ~ hashUserPassword ~ password:", password)
         const hashedPassword = bcrypt.hashSync(password, saltRounds);
-        console.log("🚀 ~ hashUserPassword ~ hashedPassword:", hashedPassword)
         if (!hashedPassword) {
             return RESPONSES.error(req, res, STATUS?.CONFLICT, MESSAGES?.PASSWORD_HASHING_FAILED ?? "");
         }

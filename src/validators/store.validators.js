@@ -1,6 +1,10 @@
 const Joi = require("joi");
 
-const Responses = require("../constants/response");
+const mongoose = require("mongoose");
+
+const RESPONSES = require("../constants/response");
+const MESSAGES = require("../constants/constantMessage");
+const STATUS = require("../constants/statusCodes");
 
 async function validateStoreOnboard(req, res, next) {
     try {
@@ -11,22 +15,6 @@ async function validateStoreOnboard(req, res, next) {
             phoneNumber: Joi.string().required(),
             image1: Joi.string().optional(),
             image2: Joi.string().optional(),
-            address: Joi.object({
-                doorNo: Joi.number().required(),
-                buildingName: Joi.string().required(),
-                street: Joi.string().required(),
-                city: Joi.string().required(),
-                pincode: Joi.number().required(),
-                state: Joi.string().required(),
-                country: Joi.string().required()
-            }).required(),
-            location: Joi.object({
-                // type: Joi.string().valid("Point").required(),
-                coordinates: Joi.array()
-                    .items(Joi.number())
-                    .length(2)
-                    .required(),
-            }).required()
         });
 
         // Validate step
@@ -39,7 +27,7 @@ async function validateStoreOnboard(req, res, next) {
             ? error.details[0]?.message.replace(/"/g, "")
             : error.message;
 
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message);
     }
 };
 
@@ -62,7 +50,7 @@ async function validateStoreLists(req, res, next) {
             ? error.details[0]?.message.replace(/"/g, "")
             : error.message;
 
-        return Responses.error(req, res, 400, message);
+        return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, message);
     }
 };
 

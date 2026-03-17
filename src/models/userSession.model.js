@@ -18,7 +18,8 @@ const userSessionSchema = new Schema(
         device: { type: String },
         loginAt: { 
           type: Date, 
-          default: Date.now },
+          default: Date.now 
+        },
       },
     ],
     phoneNumber: {

@@ -56,13 +56,13 @@ const userSchema = new Schema(
             },
             step2: { // address details
                 type: String,
-                enum: ["pending", "notcompleted", "completed"],
-                default: "notcompleted"
+                enum: ["pending", "notcomplete", "completed"],
+                default: "notcomplete"
             },
             step3: { // location details
                 type: String,
-                enum: ["pending", "notcompleted", "completed"],
-                default: "notcompleted"
+                enum: ["pending", "notcomplete", "completed"],
+                default: "notcomplete"
             }
         },
 

@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const mongoose = require("mongoose");
 
 const RESPONSES = require("../constants/response");
 const MESSAGES = require("../constants/constantMessage");
@@ -8,7 +9,7 @@ async function validateUserStep1(req, res, next) {
     try {
         const schema = Joi.object({
             firstName: Joi.string().min(3).max(50).required(),
-            lastName: Joi.string().min(3).max(50).required(),
+            lastName: Joi.string().min(1).max(50).required(),
             email: Joi.string().email().required(),
             dateOfBirth: Joi.date().required(),
             gender: Joi.string().valid("male", "female", "others").required(),
@@ -29,21 +30,24 @@ async function validateUserStep1(req, res, next) {
 async function validateUserOnboardingStep(req, res, next) {
     try {
         const step = Number(req.params.step);
+        const userId = req.params.userId;
         const body = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, MESSAGES?.INVALID_USER_ID ?? "");
+        }
 
         // Validation Schemas
         const schemas = {
             2: Joi.object({
-                address: Joi.object({
-                    doorNo: Joi.number().required(),
-                    buildingName: Joi.string().required(),
-                    street: Joi.string().required(),
-                    city: Joi.string().required(),
-                    pincode: Joi.number().required(),
-                    state: Joi.string().required(),
-                    country: Joi.string().required()
-                }).required(),
-            }),
+                doorNo: Joi.string().required(),
+                buildingName: Joi.string().required(),
+                street: Joi.string().required(),
+                city: Joi.string().required(),
+                pincode: Joi.number().required(),
+                state: Joi.string().required(),
+                country: Joi.string().required()
+            }).required(),
 
             3: Joi.object({
                 location: Joi.object({
@@ -58,7 +62,7 @@ async function validateUserOnboardingStep(req, res, next) {
 
         // Check valid step
         if (!schemas[step]) {
-            return RESPONSES.error(req, res, 400, "Invalid onboarding step");
+            return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, MESSAGES?.INVALID_ONBOARDING_STEP ?? "", { step });
         }
 
         // Validate step
@@ -119,9 +123,9 @@ async function validateUserlists(req, res, next) {
             name: Joi.string().min(3).max(50).optional(),
             email: Joi.string().email().optional(),
             role: Joi.string().valid("customer", "merchant", "admin").optional(),
-            phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).optional(),
+            // Allow partial phone search (e.g., '85')
+            phoneNumber: Joi.string().pattern(/^[0-9]{1,10}$/).optional(),
             city: Joi.string().optional(),
-            state: Joi.string().optional(),
             country: Joi.string().optional()
         });
         await schema.validateAsync(req?.query);

@@ -13,7 +13,7 @@ const createUserSession = async (req, res, next) => {
         const { accessToken, refreshToken, userDetails, otp = null } = req?.body;
         const { type } = req?.params; //only for otp login
         let sessionObj = {};
-
+        
         const whereCondition = {
             userId: new mongoose.Types.ObjectId(userDetails._id),
             isActive: true
@@ -23,13 +23,10 @@ const createUserSession = async (req, res, next) => {
             sessionObj = {
                 userId: new mongoose.Types.ObjectId(userDetails?._id),
                 phoneNumber: userDetails?.phoneNumber,
-                loginDetails: [{
-                    loginAt: new Date()
-                }],
                 otp: [{
                     code: otp || generateRandomOTP(req, res, next),
-                    expiresAt: moment().add(5, 'minutes').toDate()
-                }]
+                    expiresAt: moment().utc().add(5, 'minutes').toDate()
+                }],
             };
         }
         else { // default login with email and password
@@ -39,38 +36,35 @@ const createUserSession = async (req, res, next) => {
                 sessionKey: accessToken,
                 refreshKey: refreshToken,
                 loginDetails: [{
-                    loginAt: new Date()
+                    ipAddress: req?.ip ?? "",
+                    device: req?.headers["user-agent"] ?? "",
                 }]
             };
         }
 
         const isSessionExists = await authService.isSessionExists(whereCondition);
+        const { loginDetails, ...rest } = sessionObj;
 
         if (!isSessionExists) { // If session does not exist, create new session
             const isSessionCreated = await authService.createUserSession(sessionObj);
             if (!isSessionCreated) {
                 return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_CREATION_FAILED ?? "");
             }
-            sessionObj = {
-                ...sessionObj,
+
+            const response = {
                 sessionId: isSessionCreated._id,
-                email: userDetails?.email
-            }
-            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionObj);
+                email: userDetails?.email,
+                ...rest
+            };
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", response);
         }
         else { // If session already exists, update the session in next middleware
-            sessionObj = {
-                ...sessionObj,
-                email: userDetails?.email,
+            const response = {
                 sessionId: isSessionExists._id,
-                loginDetails: [
-                    ...(isSessionExists?.loginDetails ?? []),
-                    {
-                        loginAt: new Date()
-                    }
-                ]
+                email: userDetails?.email,
+                ...rest
             }
-            req.body["sessionObj"] = sessionObj;
+            req.body["sessionObj"] = response;
             next();
         }
     }

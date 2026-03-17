@@ -15,8 +15,8 @@ const verifyOTP = async (req, res, next) => {
 
         const { code, expiresAt } = latestOtpEntry;
 
-        const expiresAtMoment = moment(expiresAt);
-        if (!expiresAtMoment.isValid() || expiresAtMoment.isBefore(moment())) {
+        const expiresAtMoment = moment.utc(expiresAt);
+        if (!expiresAtMoment.isValid() || expiresAtMoment.isBefore(moment.utc())) {
             return RESPONSES.error(req, res, STATUS?.BAD_REQUEST, MESSAGES?.OTP_EXPIRED ?? "OTP expired", { OTP: otp });
         }
 

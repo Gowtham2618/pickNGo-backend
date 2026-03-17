@@ -1,9 +1,4 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const router = require("express").Router();
 
 const {
     validateStoreOnboard,
@@ -16,23 +11,23 @@ const storeCtrl = require("../controllers/store.controller");
 
 //Store Routes:
 
-app.post("/onboard",
-    [validateStoreOnboard],
+router.post("/onboard",
+    // validateStoreOnboard,
     checkStoreExists,
     storeCtrl.onboardStore
 );
 
-app.get("/details/:storeId",
+router.get("/details/:storeId",
     storeCtrl.getStoreDetails
 );
 
-app.get("/lists",
-    [validateStoreLists],
+router.get("/lists",
+    validateStoreLists,
     storeCtrl.getStoreLists
 );
 
-app.put("/:storeId",
+router.put("/:storeId",
     storeCtrl.updateStore
 );
 
-module.exports = app;
+module.exports = router;

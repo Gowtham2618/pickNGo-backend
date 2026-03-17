@@ -1,9 +1,10 @@
+const { trim } = require("lodash");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const storeSchema = new Schema(
     {
-        ownerId: {
+        userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
@@ -14,10 +15,18 @@ const storeSchema = new Schema(
             required: true,
             trim: true
         },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true
+        },
 
         phoneNumber: {
             type: String,
-            unique: true
+            unique: true,
+            trim: true
         },
 
         images: [

@@ -1,26 +1,50 @@
-const express = require('express');
-const app = express();
-const cors = require("cors");
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const main = express();
 
-const corsOptions = require("./src/config/cors");
+require("dotenv").config();
 
-require('dotenv').config();
+const PORT = process.env.PORT || 3000;
+const BASE_PATH = process.env.BASE_PATH || "/api/v1";
 
-const PORT = process.env.PORT || 3000; // Default port if not specified in environment variables
+const app = require("./app");
+main.use(BASE_PATH, app);
 
-app.use(cors(corsOptions));
+// create http server
+const server = http.createServer(main);
 
-//base url
-app.use('/api/v1', require('./app'));
+// socket setup
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    },
+});
 
-app.use((req, res, next) => {
-    let { originalUrl } = req;
-    res.status(404).json({
-        error: originalUrl,
-        message: 'The requested endpoint does not exist'
+// socket connection
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    socket.on("joinStoreRoom", (storeId) => {
+        socket.join(storeId);
+        console.log(`User joined store room: ${storeId}`);
+    });
+
+    socket.on("joinUserRoom", (userId) => {
+        socket.join(userId);
+        console.log(`User joined user room: ${userId}`);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server starts at********** ${PORT}`);
+// make io globally accessible
+const socket = require("./src/socket/socket.io");
+socket.init(io);
+
+// start server
+server.listen(PORT, () => {
+    console.log(`Server started at ********** ${PORT}`);
 });

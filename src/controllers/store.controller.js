@@ -13,7 +13,7 @@ class StoreController {
 
             const isUserExists = await userService.userDetails({ _id: new mongoose.Types.ObjectId(payload?.userId) });
             if (!isUserExists) {
-                return RESPONSES.error(req, res, STATUS.NOT_FOUND, "User not exists !", {
+                return RESPONSES.error(req, res, STATUS.NOT_FOUND, MESSAGES?.USER_NOT_FOUND, {
                     userId: payload?.userId
                 });
             };

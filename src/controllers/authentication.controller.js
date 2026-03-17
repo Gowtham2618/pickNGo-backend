@@ -26,7 +26,7 @@ class Authenticate {
                 sessionKey: accessToken,
                 refreshKey: refreshToken,
             };
-            let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject);
+            let isUpdated = await authenticateService.updateUserSession(req, userDetails?._id, updateObject);
             if (!isUpdated) {
                 RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
@@ -41,16 +41,23 @@ class Authenticate {
     userOTPLogin = async (req, res) => {
         try {
             const LOGIN_TYPE = "sms";
-            let { userDetails, sessionObj, otp } = req?.body;
+            let { userDetails, phoneNumber, otp } = req?.body;
             const updateObject = {
-                code: otp
+                code: otp,
+                expiresAt: moment.utc().add(5, 'minutes').toDate(),
             };
             let isUpdated = await authenticateService.updateUserSession(userDetails?._id, updateObject, LOGIN_TYPE);
             if (!isUpdated) {
                 RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
 
-            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionObj);
+            const response = {
+                userId: userDetails?._id,
+                phoneNumber: phoneNumber,
+                otp: otp,
+                email: userDetails?.email
+            }
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.OTP_GENERATED ?? "", response);
 
         }
         catch (error) {
@@ -60,18 +67,18 @@ class Authenticate {
 
     updateSessionOnOTPVerification = async (req, res) => {
         try {
-            const { userId, accessToken, refreshToken, sessionData } = req?.body;
+            const { userId, accessToken, refreshToken, sessionObj } = req?.body;
             const updateObject = {
                 sessionKey: accessToken,
                 refreshKey: refreshToken,
             };
 
-            let isUpdated = await authenticateService.updateUserSession(userId, updateObject);
+            let isUpdated = await authenticateService.updateUserSession(req, userId, updateObject);
             if (!isUpdated) {
                 RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, MESSAGES?.USER_SESSION_UPDATE_FAILED ?? "");
             }
 
-            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionData);
+            return RESPONSES.success(req, res, STATUS?.OK, MESSAGES?.USER_LOGGED_IN ?? "", sessionObj);
         }
         catch (error) {
             return RESPONSES.error(req, res, STATUS?.INTERNAL_SERVER_ERROR, `${error}`);

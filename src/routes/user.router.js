@@ -1,9 +1,4 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const router = require("express").Router();
 
 const {
     validateUserStep1,
@@ -16,13 +11,14 @@ const {
     generateRandomPassword,
     hashUserPassword,
     userDetails,
+    checkUserAddressExists,
 } = require("../middlewares");
 
 const userCtrl = require("../controllers/user.controller");
 
 //User Routes:
 
-app.post("/onboard",
+router.post("/onboard",
     validateUserStep1,
     userDetails,
     generateRandomPassword,
@@ -30,27 +26,30 @@ app.post("/onboard",
     userCtrl.onboardUser
 );
 
-app.post("/onboard/:step/:userId",
-    [validateUserOnboardingStep],
+router.put("/onboard/:step/:userId",
+    validateUserOnboardingStep,
+    userDetails,
+    checkUserAddressExists,
     userCtrl.updateUserOnboardingSteps
 );
 
-app.get("/details/:userId",
+router.get("/details/:userId",
     userCtrl.getUserDetails
 );
 
-app.get("/lists",
-    [validateUserlists],
+router.get("/lists",
+    validateUserlists,
     userCtrl.getUserLists
 );
 
-app.put("/:userId",
-    [validateUserUpdateForm],
+router.put("/:userId",
+    validateUserUpdateForm,
+    userDetails,
     userCtrl.updateUser
 );
 
-app.delete("/:userId",
+router.delete("/:userId",
     userCtrl.deleteUser
 );
 
-module.exports = app;
+module.exports = router;

@@ -3,18 +3,19 @@ const Schema = mongoose.Schema;
 
 const addressSchema = new Schema(
 {
-  ownerType: {
+  userType: {
     type: String,
-    enum: ["User", "Store"],
+    enum: ["customer", "retailer"],
     required: true
   },
-  ownerId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    refPath: "ownerType"
+    refPath: "userType"
   },
   doorNo: {
-    type: Number
+    type: String,
+    trim: true
   },
   buildingName: {
     type: String,

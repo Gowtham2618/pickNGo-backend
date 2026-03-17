@@ -5,13 +5,13 @@ const MESSAGES = require("../../constants/constantMessage");
 const STATUS = require("../../constants/statusCodes");
 
 const userService = require("../../services/user.service");
-const onboardingPath = "/user/onboard";
+const onboardingPath = "/api/v1/user/onboard";
 const userDetails = async (req, res, next) => {
     try {
-        const { email = null, phoneNumber = null, userId = null } = req?.body;
-        const { type } = req?.params;
+        const { email = null, phoneNumber = null } = req?.body;
+        const { type, userId = null } = req?.params;
 
-        const isEndpointExists = req?.originalUrl?.includes(onboardingPath);
+        const isEndpointExists = req?.originalUrl == onboardingPath;
 
         let matchCondition = {
             isActive: true

@@ -17,12 +17,13 @@ class AuthenticateService {
         return await userSessionModal.create({ ...payload });
     };
 
-    updateUserSession = async (userId, payload, type = null) => {
+    updateUserSession = async (req, userId, payload, type = null) => {
         let updateObject = {}; 
 
         const loginUpdate = {
             loginDetails: {
-                loginAt: new Date(),
+                ipAddress: req?.ip ?? "",
+                device: req?.headers["user-agent"] ?? "",
             },
         };
     
